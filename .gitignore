@@ -1,0 +1,4 @@
+/.pytest_cache
+/tests
+/test_cross_repo_communication.py
+/__pycache__

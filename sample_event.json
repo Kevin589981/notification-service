@@ -1,0 +1,15 @@
+{
+  "action": "send-notification",
+  "sender": {
+    "login": "test-user"
+  },
+  "repository": {
+    "full_name": "test-user/glados-checkin"
+  },
+  "client_payload": {
+    "title": "测试通知",
+    "content": "这是一个测试通知，用于验证跨仓库通信功能。",
+    "source": "glados",
+    "timestamp": "2025-08-01T14:55:19.356208"
+  }
+}
