@@ -26,8 +26,11 @@ jobs:
     - name: Send notification
       env:
         # Bark 通知配置
-        BARK_URL: ${{ secrets.BARK_URL }}
-        BARK_KEY: ${{ secrets.BARK_KEY }}
+        BARK_PUSH: ${{ secrets.BARK_PUSH }}
+        BARK_ARCHIVE: ${{ secrets.BARK_ARCHIVE }}
+        BARK_GROUP: ${{ secrets.BARK_GROUP }}
+        BARK_SOUND: ${{ secrets.BARK_SOUND }}
+        BARK_ICON: ${{ secrets.BARK_ICON }}
         
         # 钉钉通知配置
         DD_BOT_TOKEN: ${{ secrets.DD_BOT_TOKEN }}
@@ -37,33 +40,52 @@ jobs:
         FSKEY: ${{ secrets.FSKEY }}
         
         # 企业微信通知配置
+        QYWX_AM: ${{ secrets.QYWX_AM }}
         QYWX_KEY: ${{ secrets.QYWX_KEY }}
         
         # Telegram 通知配置
         TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
         TG_USER_ID: ${{ secrets.TG_USER_ID }}
+        TG_API_HOST: ${{ secrets.TG_API_HOST }}
+        TG_PROXY_AUTH: ${{ secrets.TG_PROXY_AUTH }}
+        TG_PROXY_HOST: ${{ secrets.TG_PROXY_HOST }}
+        TG_PROXY_PORT: ${{ secrets.TG_PROXY_PORT }}
         
         # Server酱通知配置
+        PUSH_KEY: ${{ secrets.PUSH_KEY }}
         SCKEY: ${{ secrets.SCKEY }}
-        SENDKEY: ${{ secrets.SENDKEY }}
         
-        # SMTP 邮件通知配置
-        SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-        SMTP_PORT: ${{ secrets.SMTP_PORT }}
-        SMTP_USER: ${{ secrets.SMTP_USER }}
-        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-        SMTP_TO: ${{ secrets.SMTP_TO }}
+        # PushDeer 通知配置
+        DEER_KEY: ${{ secrets.DEER_KEY }}
+        DEER_URL: ${{ secrets.DEER_URL }}
         
         # Push+ 通知配置
         PUSH_PLUS_TOKEN: ${{ secrets.PUSH_PLUS_TOKEN }}
+        PUSH_PLUS_USER: ${{ secrets.PUSH_PLUS_USER }}
         
         # Qmsg 通知配置
         QMSG_KEY: ${{ secrets.QMSG_KEY }}
-        QMSG_QQ: ${{ secrets.QMSG_QQ }}
+        QMSG_TYPE: ${{ secrets.QMSG_TYPE }}
         
         # Gotify 通知配置
         GOTIFY_URL: ${{ secrets.GOTIFY_URL }}
         GOTIFY_TOKEN: ${{ secrets.GOTIFY_TOKEN }}
+        GOTIFY_PRIORITY: ${{ secrets.GOTIFY_PRIORITY }}
+        
+        # iGot 通知配置
+        IGOT_PUSH_KEY: ${{ secrets.IGOT_PUSH_KEY }}
+        
+        # SMTP 邮件通知配置
+        SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+        SMTP_SSL: ${{ secrets.SMTP_SSL }}
+        SMTP_EMAIL: ${{ secrets.SMTP_EMAIL }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        SMTP_NAME: ${{ secrets.SMTP_NAME }}
+        
+        # 其他配置
+        HITOKOTO: ${{ secrets.HITOKOTO }}
+        CONSOLE: ${{ secrets.CONSOLE }}
+        SKIP_PUSH_TITLE: ${{ secrets.SKIP_PUSH_TITLE }}
         
         # GitHub Actions 事件相关环境变量
         GITHUB_EVENT_NAME: ${{ github.event_name }}

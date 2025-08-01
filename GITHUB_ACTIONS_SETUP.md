@@ -21,26 +21,68 @@
 - `REPO_ACCESS_TOKEN`: 用于跨仓库触发的 GitHub Personal Access Token
 
 #### 通知服务密钥（根据需要配置）
-- `BARK_URL`: Bark 通知服务 URL
-- `BARK_KEY`: Bark 通知密钥
+
+**Bark 通知配置**
+- `BARK_PUSH`: Bark 推送 URL
+- `BARK_ARCHIVE`: Bark 归档设置（可选）
+- `BARK_GROUP`: Bark 分组设置（可选）
+- `BARK_SOUND`: Bark 声音设置（可选）
+- `BARK_ICON`: Bark 图标设置（可选）
+
+**钉钉通知配置**
 - `DD_BOT_TOKEN`: 钉钉机器人 Token
 - `DD_BOT_SECRET`: 钉钉机器人密钥
+
+**飞书通知配置**
 - `FSKEY`: 飞书机器人密钥
+
+**企业微信通知配置**
+- `QYWX_AM`: 企业微信应用配置（格式：corpid,corpsecret,touser,agentid[,media_id]）
 - `QYWX_KEY`: 企业微信机器人密钥
+
+**Telegram 通知配置**
 - `TG_BOT_TOKEN`: Telegram 机器人 Token
 - `TG_USER_ID`: Telegram 用户 ID
-- `SCKEY`: Server酱旧版密钥
-- `SENDKEY`: Server酱新版密钥
-- `SMTP_SERVER`: SMTP 服务器地址
-- `SMTP_PORT`: SMTP 端口
-- `SMTP_USER`: SMTP 用户名
-- `SMTP_PASSWORD`: SMTP 密码
-- `SMTP_TO`: 邮件接收地址
+- `TG_API_HOST`: Telegram API 主机（可选）
+- `TG_PROXY_AUTH`: Telegram 代理认证（可选）
+- `TG_PROXY_HOST`: Telegram 代理主机（可选）
+- `TG_PROXY_PORT`: Telegram 代理端口（可选）
+
+**Server酱通知配置**
+- `PUSH_KEY`: Server酱新版密钥
+- `SCKEY`: Server酱旧版密钥（兼容）
+
+**PushDeer 通知配置**
+- `DEER_KEY`: PushDeer 密钥
+- `DEER_URL`: PushDeer 服务器 URL（可选）
+
+**Push+ 通知配置**
 - `PUSH_PLUS_TOKEN`: Push+ 通知 Token
+- `PUSH_PLUS_USER`: Push+ 用户标识（可选）
+
+**Qmsg 通知配置**
 - `QMSG_KEY`: Qmsg 通知密钥
-- `QMSG_QQ`: Qmsg QQ 号
+- `QMSG_TYPE`: Qmsg 消息类型
+
+**Gotify 通知配置**
 - `GOTIFY_URL`: Gotify 服务器 URL
 - `GOTIFY_TOKEN`: Gotify 应用 Token
+- `GOTIFY_PRIORITY`: Gotify 消息优先级（可选，默认为0）
+
+**iGot 通知配置**
+- `IGOT_PUSH_KEY`: iGot 推送密钥
+
+**SMTP 邮件通知配置**
+- `SMTP_SERVER`: SMTP 服务器地址
+- `SMTP_SSL`: 是否启用 SSL（true/false）
+- `SMTP_EMAIL`: SMTP 邮箱地址
+- `SMTP_PASSWORD`: SMTP 邮箱密码
+- `SMTP_NAME`: 发件人名称
+
+**其他配置**
+- `HITOKOTO`: 是否启用一言（true/false）
+- `CONSOLE`: 是否启用控制台输出（true/false）
+- `SKIP_PUSH_TITLE`: 跳过推送的标题列表（换行分隔）
 
 ## 跨仓库触发
 
