@@ -67,7 +67,7 @@ class ConfigManager:
             # Gotify 配置
             'GOTIFY_URL': os.environ.get('GOTIFY_URL', ''),
             'GOTIFY_TOKEN': os.environ.get('GOTIFY_TOKEN', ''),
-            'GOTIFY_PRIORITY': int(os.environ.get('GOTIFY_PRIORITY', '0')),
+            'GOTIFY_PRIORITY': int(os.environ.get('GOTIFY_PRIORITY') or '0'),
             
             # iGot 配置
             'IGOT_PUSH_KEY': os.environ.get('IGOT_PUSH_KEY', ''),
