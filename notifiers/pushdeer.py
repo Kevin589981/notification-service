@@ -35,7 +35,7 @@ class PushDeerNotifier(BaseNotifier):
             }
             
             # 构建请求 URL
-            url = self.config_manager.get_config("DEER_URL", "https://api2.pushdeer.com/message/push")
+            url = self.config_manager.get_config("DEER_URL") or "https://api2.pushdeer.com/message/push"
             
             # 发送请求
             response = requests.post(url, data=data, timeout=15).json()

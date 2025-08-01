@@ -23,66 +23,66 @@ class ConfigManager:
         # 通知服务相关配置
         self._config_cache = {
             # Bark 推送配置
-            'BARK_PUSH': os.environ.get('BARK_PUSH', None),
-            'BARK_ARCHIVE': os.environ.get('BARK_ARCHIVE', None),
-            'BARK_GROUP': os.environ.get('BARK_GROUP', None),
-            'BARK_SOUND': os.environ.get('BARK_SOUND', None),
-            'BARK_ICON': os.environ.get('BARK_ICON', None),
+            'BARK_PUSH': os.environ.get('BARK_PUSH') or None,
+            'BARK_ARCHIVE': os.environ.get('BARK_ARCHIVE') or None,
+            'BARK_GROUP': os.environ.get('BARK_GROUP') or None,
+            'BARK_SOUND': os.environ.get('BARK_SOUND') or None,
+            'BARK_ICON': os.environ.get('BARK_ICON') or None,
             
             # 钉钉机器人配置
-            'DD_BOT_SECRET': os.environ.get('DD_BOT_SECRET', None),
-            'DD_BOT_TOKEN': os.environ.get('DD_BOT_TOKEN', None),
+            'DD_BOT_SECRET': os.environ.get('DD_BOT_SECRET') or None,
+            'DD_BOT_TOKEN': os.environ.get('DD_BOT_TOKEN') or None,
             
             # 飞书机器人配置
-            'FSKEY': os.environ.get('FSKEY', None),
+            'FSKEY': os.environ.get('FSKEY') or None,
             
             # 企业微信配置
-            'QYWX_AM': os.environ.get('QYWX_AM', None),
-            'QYWX_KEY': os.environ.get('QYWX_KEY', None),
+            'QYWX_AM': os.environ.get('QYWX_AM') or None,
+            'QYWX_KEY': os.environ.get('QYWX_KEY') or None,
             
             # Telegram 配置
-            'TG_BOT_TOKEN': os.environ.get('TG_BOT_TOKEN', None),
-            'TG_USER_ID': os.environ.get('TG_USER_ID', None),
-            'TG_API_HOST': os.environ.get('TG_API_HOST', None),
-            'TG_PROXY_AUTH': os.environ.get('TG_PROXY_AUTH', None),
-            'TG_PROXY_HOST': os.environ.get('TG_PROXY_HOST', None),
-            'TG_PROXY_PORT': os.environ.get('TG_PROXY_PORT', None),
+            'TG_BOT_TOKEN': os.environ.get('TG_BOT_TOKEN') or None,
+            'TG_USER_ID': os.environ.get('TG_USER_ID') or None,
+            'TG_API_HOST': os.environ.get('TG_API_HOST') or None,
+            'TG_PROXY_AUTH': os.environ.get('TG_PROXY_AUTH') or None,
+            'TG_PROXY_HOST': os.environ.get('TG_PROXY_HOST') or None,
+            'TG_PROXY_PORT': os.environ.get('TG_PROXY_PORT') or None,
             
             # Server酱配置
-            'PUSH_KEY': os.environ.get('PUSH_KEY', None),
-            'SCKEY': os.environ.get('SCKEY', None),  # 兼容旧版配置
+            'PUSH_KEY': os.environ.get('PUSH_KEY') or None,
+            'SCKEY': os.environ.get('SCKEY') or None,  # 兼容旧版配置
             
             # PushDeer 配置
-            'DEER_KEY': os.environ.get('DEER_KEY', None),
-            'DEER_URL': os.environ.get('DEER_URL', None),
+            'DEER_KEY': os.environ.get('DEER_KEY') or None,
+            'DEER_URL': os.environ.get('DEER_URL') or None,
             
             # Push+ 配置
-            'PUSH_PLUS_TOKEN': os.environ.get('PUSH_PLUS_TOKEN', None),
-            'PUSH_PLUS_USER': os.environ.get('PUSH_PLUS_USER', None),
+            'PUSH_PLUS_TOKEN': os.environ.get('PUSH_PLUS_TOKEN') or None,
+            'PUSH_PLUS_USER': os.environ.get('PUSH_PLUS_USER') or None,
             
             # qmsg 配置
-            'QMSG_KEY': os.environ.get('QMSG_KEY', None),
-            'QMSG_TYPE': os.environ.get('QMSG_TYPE', None),
+            'QMSG_KEY': os.environ.get('QMSG_KEY') or None,
+            'QMSG_TYPE': os.environ.get('QMSG_TYPE') or None,
             
             # Gotify 配置
-            'GOTIFY_URL': os.environ.get('GOTIFY_URL', None),
-            'GOTIFY_TOKEN': os.environ.get('GOTIFY_TOKEN', None),
+            'GOTIFY_URL': os.environ.get('GOTIFY_URL') or None,
+            'GOTIFY_TOKEN': os.environ.get('GOTIFY_TOKEN') or None,
             'GOTIFY_PRIORITY': int(os.environ.get('GOTIFY_PRIORITY') or '0'),
             
             # iGot 配置
-            'IGOT_PUSH_KEY': os.environ.get('IGOT_PUSH_KEY', None),
+            'IGOT_PUSH_KEY': os.environ.get('IGOT_PUSH_KEY') or None,
             
             # SMTP 邮件配置
-            'SMTP_SERVER': os.environ.get('SMTP_SERVER', None),
-            'SMTP_SSL': os.environ.get('SMTP_SSL', None),
-            'SMTP_EMAIL': os.environ.get('SMTP_EMAIL', None),
-            'SMTP_PASSWORD': os.environ.get('SMTP_PASSWORD', None),
-            'SMTP_NAME': os.environ.get('SMTP_NAME', None),
+            'SMTP_SERVER': os.environ.get('SMTP_SERVER') or None,
+            'SMTP_SSL': os.environ.get('SMTP_SSL') or None,
+            'SMTP_EMAIL': os.environ.get('SMTP_EMAIL') or None,
+            'SMTP_PASSWORD': os.environ.get('SMTP_PASSWORD') or None,
+            'SMTP_NAME': os.environ.get('SMTP_NAME') or None,
             
             # 其他配置
             'HITOKOTO': os.environ.get('HITOKOTO', 'false').lower() == 'true',
             'CONSOLE': os.environ.get('CONSOLE', 'true').lower() == 'true',
-            'SKIP_PUSH_TITLE': os.environ.get('SKIP_PUSH_TITLE', None),
+            'SKIP_PUSH_TITLE': os.environ.get('SKIP_PUSH_TITLE') or None,
         }
     
     def get_config(self, key: str, default: Any = None) -> Any:
