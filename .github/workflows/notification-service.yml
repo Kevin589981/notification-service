@@ -55,7 +55,7 @@ jobs:
         PUSH_KEY: ${{ secrets.PUSH_KEY }}
         SCKEY: ${{ secrets.SCKEY }}
         
-        # PushDeer 通知配置
+        # PushDeer 通知配置 
         DEER_KEY: ${{ secrets.DEER_KEY }}
         DEER_URL: ${{ secrets.DEER_URL }}
         
