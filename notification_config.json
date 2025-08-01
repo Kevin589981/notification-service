@@ -1,0 +1,121 @@
+{
+  "notification_channels": {
+    "bark": {
+      "enabled": false,
+      "description": "Bark iOS推送通知",
+      "required_env": ["BARK_PUSH"],
+      "optional_env": ["BARK_ARCHIVE", "BARK_GROUP", "BARK_SOUND", "BARK_ICON"]
+    },
+    "console": {
+      "enabled": true,
+      "description": "控制台输出",
+      "required_env": [],
+      "optional_env": ["CONSOLE"]
+    },
+    "dingtalk": {
+      "enabled": false,
+      "description": "钉钉机器人通知",
+      "required_env": ["DD_BOT_SECRET", "DD_BOT_TOKEN"],
+      "optional_env": []
+    },
+    "feishu": {
+      "enabled": false,
+      "description": "飞书机器人通知",
+      "required_env": ["FSKEY"],
+      "optional_env": []
+    },
+    "wecom_app": {
+      "enabled": false,
+      "description": "企业微信应用通知",
+      "required_env": ["QYWX_AM"],
+      "optional_env": []
+    },
+    "wecom_bot": {
+      "enabled": false,
+      "description": "企业微信机器人通知",
+      "required_env": ["QYWX_KEY"],
+      "optional_env": []
+    },
+    "telegram": {
+      "enabled": false,
+      "description": "Telegram机器人通知",
+      "required_env": ["TG_BOT_TOKEN", "TG_USER_ID"],
+      "optional_env": ["TG_API_HOST", "TG_PROXY_AUTH", "TG_PROXY_HOST", "TG_PROXY_PORT"]
+    },
+    "serverchan": {
+      "enabled": false,
+      "description": "Server酱通知",
+      "required_env": ["PUSH_KEY"],
+      "optional_env": []
+    },
+    "serverchan_legacy": {
+      "enabled": false,
+      "description": "Server酱通知(旧版)",
+      "required_env": ["SCKEY"],
+      "optional_env": []
+    },
+    "pushdeer": {
+      "enabled": true,
+      "description": "PushDeer通知",
+      "required_env": ["DEER_KEY"],
+      "optional_env": ["DEER_URL"]
+    },
+    "pushplus": {
+      "enabled": false,
+      "description": "Push+通知",
+      "required_env": ["PUSH_PLUS_TOKEN"],
+      "optional_env": ["PUSH_PLUS_USER"]
+    },
+    "qmsg": {
+      "enabled": false,
+      "description": "Qmsg酱通知",
+      "required_env": ["QMSG_KEY", "QMSG_TYPE"],
+      "optional_env": []
+    },
+    "gotify": {
+      "enabled": false,
+      "description": "Gotify通知",
+      "required_env": ["GOTIFY_URL", "GOTIFY_TOKEN"],
+      "optional_env": ["GOTIFY_PRIORITY"]
+    },
+    "igot": {
+      "enabled": false,
+      "description": "iGot通知",
+      "required_env": ["IGOT_PUSH_KEY"],
+      "optional_env": []
+    },
+    "smtp": {
+      "enabled": false,
+      "description": "SMTP邮件通知",
+      "required_env": ["SMTP_SERVER", "SMTP_SSL", "SMTP_EMAIL", "SMTP_PASSWORD", "SMTP_NAME"],
+      "optional_env": []
+    }
+  },
+  "global_settings": {
+    "hitokoto": {
+      "enabled": false,
+      "description": "在通知末尾添加一言",
+      "env_var": "HITOKOTO"
+    },
+    "console_output": {
+      "enabled": true,
+      "description": "启用控制台输出",
+      "env_var": "CONSOLE"
+    },
+    "skip_push_titles": {
+      "enabled": false,
+      "description": "跳过推送的标题列表",
+      "env_var": "SKIP_PUSH_TITLE"
+    }
+  },
+  "retry_settings": {
+    "max_attempts": 2,
+    "base_delay": 1.0,
+    "max_delay": 10.0,
+    "timeout": 30
+  },
+  "concurrent_settings": {
+    "max_workers": 10,
+    "notification_timeout": 30
+  }
+}

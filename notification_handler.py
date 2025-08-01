@@ -155,12 +155,45 @@ class NotificationHandler:
     
     def get_active_notifiers(self) -> List:
         """
-        获取已配置的通知器列表
+        获取已配置且启用的通知器列表
         
         Returns:
-            List: 已配置的通知器列表
+            List: 已配置且启用的通知器列表
         """
-        return [notifier for notifier in self.notifiers if notifier.is_configured()]
+        active_notifiers = []
+        
+        # 通知器名称映射
+        notifier_mapping = {
+            'BarkNotifier': 'bark',
+            'ConsoleNotifier': 'console', 
+            'DingTalkNotifier': 'dingtalk',
+            'WeComAppNotifier': 'wecom_app',
+            'WeComBotNotifier': 'wecom_bot',
+            'TelegramNotifier': 'telegram',
+            'SMTPNotifier': 'smtp',
+            'PushPlusNotifier': 'pushplus',
+            'QmsgNotifier': 'qmsg',
+            'GotifyNotifier': 'gotify',
+            'IGotNotifier': 'igot',
+            'PushDeerNotifier': 'pushdeer',
+            'ServerChanNotifier': 'serverchan'
+        }
+        
+        for notifier in self.notifiers:
+            notifier_class_name = notifier.__class__.__name__
+            channel_name = notifier_mapping.get(notifier_class_name)
+            
+            if channel_name:
+                # 检查是否启用且已配置
+                if (self.config_manager.is_channel_enabled(channel_name) and 
+                    notifier.is_configured()):
+                    active_notifiers.append(notifier)
+            else:
+                # 对于未映射的通知器，使用原有逻辑
+                if notifier.is_configured():
+                    active_notifiers.append(notifier)
+        
+        return active_notifiers
     
     def _should_skip_push(self, title: str) -> bool:
         """检查是否应该跳过推送"""

@@ -7,6 +7,7 @@
 
 import os
 import re
+import json
 from typing import Any, Dict, Optional
 
 
@@ -16,7 +17,19 @@ class ConfigManager:
     def __init__(self):
         """初始化配置管理器"""
         self._config_cache = {}
+        self._notification_config = {}
+        self._load_notification_config()
         self._load_config()
+    
+    def _load_notification_config(self) -> None:
+        """加载通知配置文件"""
+        try:
+            config_path = os.path.join(os.path.dirname(__file__), 'notification_config.json')
+            with open(config_path, 'r', encoding='utf-8') as f:
+                self._notification_config = json.load(f)
+        except Exception as e:
+            print(f"加载通知配置文件失败: {e}")
+            self._notification_config = {}
     
     def _load_config(self) -> None:
         """从环境变量加载配置"""
@@ -114,7 +127,8 @@ class ConfigManager:
         """
         service_configs = {
             'bark': ['BARK_PUSH'],
-            'dingding': ['DD_BOT_SECRET', 'DD_BOT_TOKEN'],
+            'console': [],  # 控制台输出不需要配置
+            'dingtalk': ['DD_BOT_SECRET', 'DD_BOT_TOKEN'],
             'feishu': ['FSKEY'],
             'wecom_app': ['QYWX_AM'],
             'wecom_bot': ['QYWX_KEY'],
@@ -130,8 +144,12 @@ class ConfigManager:
         }
         
         required_keys = service_configs.get(service, [])
-        if not required_keys:
+        if service not in service_configs:
             return False
+        
+        # 如果没有必需的配置项，则认为已配置（如console）
+        if not required_keys:
+            return True
             
         return all(self.get_config(key) for key in required_keys)
     
@@ -297,3 +315,77 @@ class ConfigManager:
             errors['SMTP_SSL'] = 'SMTP_SSL 应设置为 true 或 false'
         
         return errors
+    
+    def is_channel_enabled(self, channel: str) -> bool:
+        """
+        检查通知渠道是否启用
+        
+        Args:
+            channel: 通知渠道名称
+            
+        Returns:
+            是否启用
+        """
+        # 从环境变量获取启用状态，格式如：ENABLE_BARK=true
+        env_key = f"ENABLE_{channel.upper()}"
+        env_value = os.environ.get(env_key, '').lower()
+        
+        if env_value in ['true', '1', 'yes', 'on']:
+            return True
+        elif env_value in ['false', '0', 'no', 'off']:
+            return False
+        
+        # 如果环境变量未设置，使用配置文件中的默认值
+        channels = self._notification_config.get('notification_channels', {})
+        channel_config = channels.get(channel, {})
+        return channel_config.get('enabled', False)
+    
+    def get_enabled_channels(self) -> list:
+        """
+        获取所有启用的通知渠道
+        
+        Returns:
+            启用的通知渠道列表
+        """
+        enabled_channels = []
+        channels = self._notification_config.get('notification_channels', {})
+        
+        for channel_name in channels.keys():
+            if self.is_channel_enabled(channel_name) and self.is_configured(channel_name):
+                enabled_channels.append(channel_name)
+        
+        return enabled_channels
+    
+    def get_channel_info(self, channel: str) -> Dict[str, Any]:
+        """
+        获取通知渠道信息
+        
+        Args:
+            channel: 通知渠道名称
+            
+        Returns:
+            通知渠道信息
+        """
+        channels = self._notification_config.get('notification_channels', {})
+        return channels.get(channel, {})
+    
+    def get_all_channels_status(self) -> Dict[str, Dict[str, Any]]:
+        """
+        获取所有通知渠道的状态
+        
+        Returns:
+            所有通知渠道的状态信息
+        """
+        status = {}
+        channels = self._notification_config.get('notification_channels', {})
+        
+        for channel_name, channel_config in channels.items():
+            status[channel_name] = {
+                'enabled': self.is_channel_enabled(channel_name),
+                'configured': self.is_configured(channel_name),
+                'description': channel_config.get('description', ''),
+                'required_env': channel_config.get('required_env', []),
+                'optional_env': channel_config.get('optional_env', [])
+            }
+        
+        return status
