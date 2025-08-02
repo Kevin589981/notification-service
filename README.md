@@ -1,3 +1,5 @@
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+
 # 通知服务模块
 
 独立的通知服务模块，用于处理来自签到模块的通知请求，支持多种通知方式。
