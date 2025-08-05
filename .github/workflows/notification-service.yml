@@ -131,7 +131,7 @@ jobs:
           echo "事件数据: ${{ toJson(github.event.client_payload) }}"
 
           # 激活虚拟环境并执行脚本
-          source venv/bin/activate
+          # source venv/bin/activate
           python main.py
 
       # -----------------------------------------------------------
