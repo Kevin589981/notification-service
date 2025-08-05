@@ -1,6 +1,10 @@
+# ===================================================================
+#  Notification Service
+#  通过 repository_dispatch 事件触发，用于发送各类通知
+# ===================================================================
 name: Notification Service
 
-# 监听 repository_dispatch 事件
+# 触发条件：监听 repository_dispatch 事件，且 action 为 send-notification
 on:
   repository_dispatch:
     types: [send-notification]
@@ -8,100 +12,136 @@ on:
 jobs:
   send-notification:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-        
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        
-    - name: Send notification
-      env:
-        # Bark 通知配置
-        BARK_PUSH: ${{ secrets.BARK_PUSH }}
-        BARK_ARCHIVE: ${{ secrets.BARK_ARCHIVE }}
-        BARK_GROUP: ${{ secrets.BARK_GROUP }}
-        BARK_SOUND: ${{ secrets.BARK_SOUND }}
-        BARK_ICON: ${{ secrets.BARK_ICON }}
-        
-        # 钉钉通知配置
-        DD_BOT_TOKEN: ${{ secrets.DD_BOT_TOKEN }}
-        DD_BOT_SECRET: ${{ secrets.DD_BOT_SECRET }}
-        
-        # 飞书通知配置
-        FSKEY: ${{ secrets.FSKEY }}
-        
-        # 企业微信通知配置
-        QYWX_AM: ${{ secrets.QYWX_AM }}
-        QYWX_KEY: ${{ secrets.QYWX_KEY }}
-        
-        # Telegram 通知配置
-        TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-        TG_USER_ID: ${{ secrets.TG_USER_ID }}
-        TG_API_HOST: ${{ secrets.TG_API_HOST }}
-        TG_PROXY_AUTH: ${{ secrets.TG_PROXY_AUTH }}
-        TG_PROXY_HOST: ${{ secrets.TG_PROXY_HOST }}
-        TG_PROXY_PORT: ${{ secrets.TG_PROXY_PORT }}
-        
-        # Server酱通知配置
-        PUSH_KEY: ${{ secrets.PUSH_KEY }}
-        SCKEY: ${{ secrets.SCKEY }}
-        
-        # PushDeer 通知配置 
-        DEER_KEY: ${{ secrets.DEER_KEY }}
-        DEER_URL: ${{ secrets.DEER_URL }}
-        
-        # Push+ 通知配置
-        PUSH_PLUS_TOKEN: ${{ secrets.PUSH_PLUS_TOKEN }}
-        PUSH_PLUS_USER: ${{ secrets.PUSH_PLUS_USER }}
-        
-        # Qmsg 通知配置
-        QMSG_KEY: ${{ secrets.QMSG_KEY }}
-        QMSG_TYPE: ${{ secrets.QMSG_TYPE }}
-        
-        # Gotify 通知配置
-        GOTIFY_URL: ${{ secrets.GOTIFY_URL }}
-        GOTIFY_TOKEN: ${{ secrets.GOTIFY_TOKEN }}
-        GOTIFY_PRIORITY: ${{ secrets.GOTIFY_PRIORITY }}
-        
-        # iGot 通知配置
-        IGOT_PUSH_KEY: ${{ secrets.IGOT_PUSH_KEY }}
-        
-        # SMTP 邮件通知配置
-        SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-        SMTP_SSL: ${{ secrets.SMTP_SSL }}
-        SMTP_EMAIL: ${{ secrets.SMTP_EMAIL }}
-        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-        SMTP_NAME: ${{ secrets.SMTP_NAME }}
-        
-        # 其他配置
-        HITOKOTO: ${{ secrets.HITOKOTO }}
-        CONSOLE: ${{ secrets.CONSOLE }}
-        SKIP_PUSH_TITLE: ${{ secrets.SKIP_PUSH_TITLE }}
-        
-        # GitHub Actions 事件相关环境变量
-        GITHUB_EVENT_NAME: ${{ github.event_name }}
-        GITHUB_EVENT_PATH: ${{ github.event_path }}
-        
-      run: |
-        echo "开始处理通知请求..."
-        echo "事件类型: ${{ github.event.action }}"
-        echo "事件数据: ${{ toJson(github.event.client_payload) }}"
-        
-        # 运行通知服务
-        python main.py
-        
-    - name: Log notification result
-      if: always()
-      run: |
-        echo "通知服务执行完成"
-        echo "时间: $(date)"
-        echo "事件来源: ${{ github.event.client_payload.source || 'unknown' }}"
+      # -----------------------------------------------------------
+      # 1. 拉取最新代码
+      # -----------------------------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------
+      # 2. 安装 Python 并自动缓存 pip 依赖
+      #    cache: pip 会把 ~/.cache/pip 缓存到 GitHub 的缓存服务
+      # -----------------------------------------------------------
+      - name: Set up Python & cache pip
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'           # 开启 pip 缓存
+          cache-dependency-path: |  # 指定缓存 key 依赖的文件
+            requirements.txt
+
+      # -----------------------------------------------------------
+      # 3. 额外缓存整个虚拟环境（venv）
+      #    这样即使 GitHub 的 pip 缓存偶尔失效，也能秒级恢复
+      # -----------------------------------------------------------
+      - name: Cache venv
+        uses: actions/cache@v4
+        id: cache-venv
+        with:
+          path: ./venv          # 虚拟环境目录
+          # 缓存 key：操作系统 + requirements.txt 的哈希值
+          key: venv-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+
+      # -----------------------------------------------------------
+      # 4. 安装依赖（仅当缓存未命中时）
+      # -----------------------------------------------------------
+      - name: Install dependencies
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+        run: |
+          python -m venv venv      # 创建虚拟环境
+          source venv/bin/activate # 激活虚拟环境
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # -----------------------------------------------------------
+      # 5. 运行通知脚本
+      #    先激活缓存好的虚拟环境，再执行 main.py
+      # -----------------------------------------------------------
+      - name: Send notification
+        env:
+          # ------------------ Bark ------------------
+          BARK_PUSH: ${{ secrets.BARK_PUSH }}
+          BARK_ARCHIVE: ${{ secrets.BARK_ARCHIVE }}
+          BARK_GROUP: ${{ secrets.BARK_GROUP }}
+          BARK_SOUND: ${{ secrets.BARK_SOUND }}
+          BARK_ICON: ${{ secrets.BARK_ICON }}
+
+          # ------------------ 钉钉 ------------------
+          DD_BOT_TOKEN: ${{ secrets.DD_BOT_TOKEN }}
+          DD_BOT_SECRET: ${{ secrets.DD_BOT_SECRET }}
+
+          # ------------------ 飞书 ------------------
+          FSKEY: ${{ secrets.FSKEY }}
+
+          # ------------------ 企业微信 ------------------
+          QYWX_AM: ${{ secrets.QYWX_AM }}
+          QYWX_KEY: ${{ secrets.QYWX_KEY }}
+
+          # ------------------ Telegram ------------------
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_USER_ID: ${{ secrets.TG_USER_ID }}
+          TG_API_HOST: ${{ secrets.TG_API_HOST }}
+          TG_PROXY_AUTH: ${{ secrets.TG_PROXY_AUTH }}
+          TG_PROXY_HOST: ${{ secrets.TG_PROXY_HOST }}
+          TG_PROXY_PORT: ${{ secrets.TG_PROXY_PORT }}
+
+          # ------------------ Server酱 ------------------
+          PUSH_KEY: ${{ secrets.PUSH_KEY }}
+          SCKEY: ${{ secrets.SCKEY }}
+
+          # ------------------ PushDeer ------------------
+          DEER_KEY: ${{ secrets.DEER_KEY }}
+          DEER_URL: ${{ secrets.DEER_URL }}
+
+          # ------------------ Push+ ------------------
+          PUSH_PLUS_TOKEN: ${{ secrets.PUSH_PLUS_TOKEN }}
+          PUSH_PLUS_USER: ${{ secrets.PUSH_PLUS_USER }}
+
+          # ------------------ Qmsg ------------------
+          QMSG_KEY: ${{ secrets.QMSG_KEY }}
+          QMSG_TYPE: ${{ secrets.QMSG_TYPE }}
+
+          # ------------------ Gotify ------------------
+          GOTIFY_URL: ${{ secrets.GOTIFY_URL }}
+          GOTIFY_TOKEN: ${{ secrets.GOTIFY_TOKEN }}
+          GOTIFY_PRIORITY: ${{ secrets.GOTIFY_PRIORITY }}
+
+          # ------------------ iGot ------------------
+          IGOT_PUSH_KEY: ${{ secrets.IGOT_PUSH_KEY }}
+
+          # ------------------ SMTP 邮件 ------------------
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_SSL: ${{ secrets.SMTP_SSL }}
+          SMTP_EMAIL: ${{ secrets.SMTP_EMAIL }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_NAME: ${{ secrets.SMTP_NAME }}
+
+          # ------------------ 其他配置 ------------------
+          HITOKOTO: ${{ secrets.HITOKOTO }}
+          CONSOLE: ${{ secrets.CONSOLE }}
+          SKIP_PUSH_TITLE: ${{ secrets.SKIP_PUSH_TITLE }}
+
+          # ------------------ GitHub 事件信息 ------------------
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+
+        run: |
+          echo "开始处理通知请求..."
+          echo "事件类型: ${{ github.event.action }}"
+          echo "事件数据: ${{ toJson(github.event.client_payload) }}"
+
+          # 激活虚拟环境并执行脚本
+          source venv/bin/activate
+          python main.py
+
+      # -----------------------------------------------------------
+      # 6. 日志记录（无论成功失败都会执行）
+      # -----------------------------------------------------------
+      - name: Log notification result
+        if: always()
+        run: |
+          echo "通知服务执行完成"
+          echo "时间: $(date)"
+          echo "事件来源: ${{ github.event.client_payload.source || 'unknown' }}"
