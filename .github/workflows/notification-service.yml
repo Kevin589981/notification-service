@@ -50,8 +50,6 @@ jobs:
       - name: Install dependencies
         # if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
-          # python -m venv venv      # 创建虚拟环境
-          # source venv/bin/activate # 激活虚拟环境
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
