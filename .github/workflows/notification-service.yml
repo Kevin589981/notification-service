@@ -54,7 +54,46 @@ jobs:
           pip install -r requirements.txt
 
       # -----------------------------------------------------------
-      # 5. 运行通知脚本
+      # 5. 处理文件附件（如果有）
+      # -----------------------------------------------------------
+      - name: Process attachments
+        if: github.event.client_payload.attachments
+        run: |
+          echo "处理文件附件..."
+          mkdir -p ./temp_attachments
+          
+          # 解析附件数据并创建文件
+          python -c "
+          import json
+          import base64
+          import os
+          
+          attachments = json.loads('${{ toJson(github.event.client_payload.attachments) }}')
+          
+          for attachment in attachments:
+              filename = attachment.get('filename', 'attachment')
+              content = attachment.get('content', '')
+              encoding = attachment.get('encoding', 'base64')
+              
+              print(f'处理附件: {filename}')
+              
+              if encoding == 'base64':
+                  try:
+                      file_content = base64.b64decode(content)
+                      with open(f'./temp_attachments/{filename}', 'wb') as f:
+                          f.write(file_content)
+                      print(f'附件 {filename} 保存成功')
+                  except Exception as e:
+                      print(f'处理附件 {filename} 失败: {e}')
+              else:
+                  # 处理文本文件
+                  with open(f'./temp_attachments/{filename}', 'w', encoding='utf-8') as f:
+                      f.write(content)
+                  print(f'文本附件 {filename} 保存成功')
+          "
+
+      # -----------------------------------------------------------
+      # 6. 运行通知脚本
       #    先激活缓存好的虚拟环境，再执行 main.py
       # -----------------------------------------------------------
       - name: Send notification
@@ -129,13 +168,27 @@ jobs:
           echo "开始处理通知请求..."
           echo "事件类型: ${{ github.event.action }}"
           echo "事件数据: ${{ toJson(github.event.client_payload) }}"
-
+          
+          # 设置附件目录环境变量
+          export ATTACHMENTS_DIR="./temp_attachments"
+          
           # 激活虚拟环境并执行脚本
           # source venv/bin/activate
           python main.py
 
       # -----------------------------------------------------------
-      # 6. 日志记录（无论成功失败都会执行）
+      # 7. 清理临时文件
+      # -----------------------------------------------------------
+      - name: Cleanup attachments
+        if: always()
+        run: |
+          if [ -d "./temp_attachments" ]; then
+            echo "清理临时附件文件..."
+            rm -rf ./temp_attachments
+          fi
+
+      # -----------------------------------------------------------
+      # 8. 日志记录（无论成功失败都会执行）
       # -----------------------------------------------------------
       - name: Log notification result
         if: always()

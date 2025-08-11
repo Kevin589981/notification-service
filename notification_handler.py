@@ -23,12 +23,20 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class AttachmentInfo:
+    """附件信息数据模型"""
+    filename: str
+    filepath: str
+    content_type: str = "application/octet-stream"
+
+@dataclass
 class GitHubEventPayload:
     """GitHub 事件负载数据模型"""
     title: str
     content: str
     source: str
     timestamp: str
+    attachments: List[AttachmentInfo] = None
 
 
 @dataclass
@@ -100,14 +108,21 @@ class NotificationHandler:
         try:
             # 解析事件数据
             client_payload = event_data.get('client_payload', {})
+            
+            # 处理附件
+            attachments = self._process_attachments(client_payload)
+            
             payload = GitHubEventPayload(
                 title=client_payload.get('title', '通知'),
                 content=client_payload.get('content', ''),
                 source=client_payload.get('source', 'unknown'),
-                timestamp=client_payload.get('timestamp', '')
+                timestamp=client_payload.get('timestamp', ''),
+                attachments=attachments
             )
             
             self.logger.info(f"接收到来自 {payload.source} 的通知请求: {payload.title}")
+            if attachments:
+                self.logger.info(f"包含 {len(attachments)} 个附件")
             
             # 验证请求数据
             if not payload.content:
@@ -115,12 +130,58 @@ class NotificationHandler:
                 return
             
             # 发送通知
-            self.send_notification(payload.title, payload.content, payload.source)
+            self.send_notification(payload.title, payload.content, payload.source, attachments)
             
         except Exception as e:
             self.logger.error(f"处理 GitHub 事件时发生错误: {str(e)}")
     
-    def send_notification(self, title: str, content: str, source: str = "unknown") -> NotificationSummary:
+    def _process_attachments(self, client_payload: dict) -> List[AttachmentInfo]:
+        """
+        处理附件数据，返回附件信息列表
+        
+        Args:
+            client_payload: GitHub client_payload 数据
+            
+        Returns:
+            List[AttachmentInfo]: 附件信息列表
+        """
+        attachments = []
+        
+        # 获取附件目录
+        attachments_dir = os.environ.get('ATTACHMENTS_DIR', './temp_attachments')
+        
+        # 检查是否有附件数据
+        attachment_data = client_payload.get('attachments', [])
+        if not attachment_data:
+            return attachments
+        
+        self.logger.info(f"发现 {len(attachment_data)} 个附件")
+        
+        # 检查附件目录是否存在
+        if not os.path.exists(attachments_dir):
+            self.logger.warning(f"附件目录不存在: {attachments_dir}")
+            return attachments
+        
+        # 处理每个附件
+        for attachment in attachment_data:
+            filename = attachment.get('filename', 'attachment')
+            filepath = os.path.join(attachments_dir, filename)
+            content_type = attachment.get('content_type', 'application/octet-stream')
+            
+            # 检查文件是否存在
+            if os.path.exists(filepath):
+                attachments.append(AttachmentInfo(
+                    filename=filename,
+                    filepath=filepath,
+                    content_type=content_type
+                ))
+                self.logger.info(f"附件已准备: {filename} ({content_type})")
+            else:
+                self.logger.warning(f"附件文件不存在: {filepath}")
+        
+        return attachments
+    
+    def send_notification(self, title: str, content: str, source: str = "unknown", attachments: List[AttachmentInfo] = None) -> NotificationSummary:
         """
         发送通知到所有配置的渠道
         
@@ -151,7 +212,7 @@ class NotificationHandler:
         final_content = self._add_hitokoto_if_enabled(content)
         
         # 并发发送通知
-        return self._send_concurrent_notifications(title, final_content, active_notifiers)
+        return self._send_concurrent_notifications(title, final_content, active_notifiers, attachments)
     
     def get_active_notifiers(self) -> List:
         """
@@ -216,7 +277,7 @@ class NotificationHandler:
                 self.logger.warning(f"获取一言失败: {str(e)}")
         return content
     
-    def _send_concurrent_notifications(self, title: str, content: str, notifiers: List) -> NotificationSummary:
+    def _send_concurrent_notifications(self, title: str, content: str, notifiers: List, attachments: List[AttachmentInfo] = None) -> NotificationSummary:
         """
         并发发送通知到多个渠道，支持超时控制和资源管理
         
@@ -248,7 +309,7 @@ class NotificationHandler:
             future_to_notifier = {}
             for notifier in notifiers:
                 try:
-                    future = executor.submit(self._send_single_notification, notifier, title, content)
+                    future = executor.submit(self._send_single_notification, notifier, title, content, attachments)
                     future_to_notifier[future] = notifier
                 except Exception as e:
                     # 提交任务失败
@@ -315,7 +376,7 @@ class NotificationHandler:
             errors=errors
         )
     
-    def _send_single_notification(self, notifier, title: str, content: str) -> NotificationResult:
+    def _send_single_notification(self, notifier, title: str, content: str, attachments: List[AttachmentInfo] = None) -> NotificationResult:
         """
         发送单个通知，包含错误处理、重试机制和日志记录
         
@@ -347,7 +408,7 @@ class NotificationHandler:
             self.logger.debug(f"开始发送通知到 {channel_name}")
             
             # 使用重试机制执行发送
-            result = retry_handler.execute_with_retry(self._execute_notification_send, notifier, title, content)
+            result = retry_handler.execute_with_retry(self._execute_notification_send, notifier, title, content, attachments)
             
             # 验证结果
             if not isinstance(result, NotificationResult):
@@ -373,7 +434,7 @@ class NotificationHandler:
                 error=error_msg
             )
     
-    def _execute_notification_send(self, notifier, title: str, content: str) -> NotificationResult:
+    def _execute_notification_send(self, notifier, title: str, content: str, attachments: List[AttachmentInfo] = None) -> NotificationResult:
         """
         执行通知发送的核心逻辑，可能会抛出可重试的异常
         
@@ -390,7 +451,11 @@ class NotificationHandler:
             TemporaryError: 临时性错误
         """
         try:
-            result = notifier.send(title, content)
+            # 检查通知器是否支持附件
+            if attachments and hasattr(notifier, 'send_with_attachments'):
+                result = notifier.send_with_attachments(title, content, attachments)
+            else:
+                result = notifier.send(title, content)
             
             # 如果通知器返回失败结果，检查是否为可重试的错误
             if not result.success and self._is_retryable_error(result.error):
