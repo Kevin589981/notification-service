@@ -10,7 +10,7 @@ import logging
 import os
 import sys
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from config_manager import ConfigManager
 from notification_handler import NotificationHandler
@@ -25,6 +25,57 @@ def setup_logging():
             logging.StreamHandler(sys.stdout)
         ]
     )
+
+
+def process_attachments(client_payload: Dict[str, Any]) -> List:
+    """
+    处理附件数据，返回附件信息列表
+    
+    Args:
+        client_payload: GitHub client_payload 数据
+        
+    Returns:
+        List: 附件信息列表
+    """
+    logger = logging.getLogger(__name__)
+    attachments = []
+    
+    # 获取附件目录
+    attachments_dir = os.environ.get('ATTACHMENTS_DIR', './temp_attachments')
+    
+    # 检查是否有附件数据
+    attachment_data = client_payload.get('attachments', [])
+    if not attachment_data:
+        return attachments
+    
+    logger.info(f"发现 {len(attachment_data)} 个附件")
+    
+    # 检查附件目录是否存在
+    if not os.path.exists(attachments_dir):
+        logger.warning(f"附件目录不存在: {attachments_dir}")
+        return attachments
+    
+    # 导入附件信息类
+    from notification_handler import AttachmentInfo
+    
+    # 处理每个附件
+    for attachment in attachment_data:
+        filename = attachment.get('filename', 'attachment')
+        filepath = os.path.join(attachments_dir, filename)
+        content_type = attachment.get('content_type', 'application/octet-stream')
+        
+        # 检查文件是否存在
+        if os.path.exists(filepath):
+            attachments.append(AttachmentInfo(
+                filename=filename,
+                filepath=filepath,
+                content_type=content_type
+            ))
+            logger.info(f"附件已准备: {filename} ({content_type})")
+        else:
+            logger.warning(f"附件文件不存在: {filepath}")
+    
+    return attachments
 
 
 def validate_event_data(event_data: Dict[str, Any]) -> bool:
